@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>-AT32F403ARGT7</Device>
           <Vendor>ArteryTek</Vendor>
-          <PackID>ArteryTek.AT32F403A_407_DFP.2.1.9</PackID>
+          <PackID>ArteryTek.AT32F403A_407_DFP.2.2.3</PackID>
           <Cpu>IRAM(0x20000000,0x18000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
@@ -339,7 +339,7 @@
               <MiscControls></MiscControls>
               <Define>AT32F403ARGT7, USE_STDPERIPH_DRIVER, AT_START_F403A_V1</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\libraries\drivers\inc;..\..\libraries\cmsis\cm4\core_support;..\..\libraries\cmsis\cm4\device_support;..\inc;..\..\utility;../../middlewares/usbd_drivers/inc</IncludePath>
+              <IncludePath>..\..\libraries\drivers\inc;..\..\libraries\cmsis\cm4\core_support;..\..\libraries\cmsis\cm4\device_support;..\inc;..\..\utility;../../middlewares/usbd_drivers/inc;..\..\bsp\sdio</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -662,6 +662,21 @@
               <FileName>usbd_sdr.c</FileName>
               <FileType>1</FileType>
               <FilePath>../../middlewares/usbd_drivers/src/usbd_sdr.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>bsp</GroupName>
+          <Files>
+            <File>
+              <FileName>at32_sdio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\bsp\sdio\at32_sdio.c</FilePath>
+            </File>
+            <File>
+              <FileName>at32_sdio.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\..\bsp\sdio\at32_sdio.h</FilePath>
             </File>
           </Files>
         </Group>

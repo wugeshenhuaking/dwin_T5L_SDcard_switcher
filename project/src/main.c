@@ -36,7 +36,7 @@
 
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
-
+#include "at32_sdio.h"
 /* add user code end private includes */
 
 /* private typedef -----------------------------------------------------------*/
@@ -111,7 +111,9 @@ int main(void)
   wk_usb_app_init();
 
   /* add user code begin 2 */
-   
+     /* ≥¢ ‘≥ı ºªØ SD ø® */
+  sd_init();
+
   /* add user code end 2 */
 
   while(1)

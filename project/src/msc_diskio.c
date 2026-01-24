@@ -29,8 +29,9 @@
 
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
-#include "wk_sdio.h"          // 引入 WorkBench 生成的 SDIO 驱动
+#include "wk_sdio.h"            // 引入 WorkBench 生成的 SDIO 驱动
 #include "at32f403a_407_sdio.h" // 引入底层驱动定义
+#include "at32_sdio.h"
 /* add user code end private includes */
 
 /* private typedef -----------------------------------------------------------*/
@@ -111,6 +112,7 @@ uint8_t *get_inquiry(uint8_t lun)
 usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32_t len)
 {
   /* add user code begin msc_disk_read 0 */
+  sd_error_status_type status = SD_OK;
 
   /* add user code end msc_disk_read 0 */
 
@@ -121,6 +123,9 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
     case SPI_FLASH_LUN:
       break;
     case SD_LUN:
+      status = sd_mult_blocks_read(read_buf, (long long)addr * 512, 512, len);
+     if(status == SD_OK)
+            return USB_OK;
       break;
     default:
       break;
@@ -144,6 +149,7 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
 usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t len)
 {
   /* add user code begin msc_disk_write 0 */
+  sd_error_status_type status = SD_OK;
 
   /* add user code end msc_disk_write 0 */
 
@@ -154,6 +160,14 @@ usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t l
     case SPI_FLASH_LUN:
       break;
     case SD_LUN:
+      /* 
+       * 调用 at32_sdio.c 中的多块写入函数 
+       * 参数逻辑同读取
+       */
+      status = sd_mult_blocks_write(buf, (long long)addr * 512, 512, len);
+      
+      if(status == SD_OK)
+        return USB_OK;
       break;
     default:
       break;;
@@ -176,7 +190,7 @@ usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t l
 usb_sts_type msc_disk_capacity(uint8_t lun, uint32_t *blk_nbr, uint32_t *blk_size)
 {
   /* add user code begin msc_disk_capacity 0 */
-  sdio_type sd_card_info;
+  sd_card_info_struct_type card_info;
   /* add user code end msc_disk_capacity 0 */
 
   switch(lun)
@@ -186,6 +200,17 @@ usb_sts_type msc_disk_capacity(uint8_t lun, uint32_t *blk_nbr, uint32_t *blk_siz
     case SPI_FLASH_LUN:
       break;
     case SD_LUN:
+        /* 获取 SD 卡信息 */
+      if(sd_card_info_get(&card_info) == SD_OK)
+      {
+        /* 
+         * at32_sdio.c 里计算出的 card_capacity 是字节数 (Bytes)
+         * 扇区数 = 总字节 / 512
+         */
+        *blk_nbr = card_info.card_capacity / 512;
+        *blk_size = 512;
+        return USB_OK;
+      }
       break;
     default:
       break;
