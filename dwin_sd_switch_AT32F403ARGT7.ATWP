@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Root>
+    <WorkBenchVersion>
+        <Version>V1.2.02</Version>
+    </WorkBenchVersion>
+    <MCUInfo>
+        <MCUSerials>AT32F403A</MCUSerials>
+        <MCUName>AT32F403ARGT7</MCUName>
+        <MCUPackage>LQFP64</MCUPackage>
+    </MCUInfo>
+    <ACC>
+        <Mode>
+            <ModeSub name="ACC_State" value="TRUE"/>
+        </Mode>
+    </ACC>
+    <CRM>
+        <Mode>
+            <ModeSub name="HEXT" value="HEXT-External-Oscillator"/>
+        </Mode>
+        <Parameters>
+            <ParametersSub name="HEXT" value="HEXT_CRYSTAL"/>
+        </Parameters>
+    </CRM>
+    <DEBUG>
+        <Mode>
+            <ModeSub name="Debug interface" value="SWD"/>
+            <ModeSub name="SWO" value="TRUE"/>
+        </Mode>
+    </DEBUG>
+    <SDIO2>
+        <Mode>
+            <ModeSub name="Mode" value="SD_4_bit"/>
+        </Mode>
+        <Parameters>
+            <ParametersSub name="ClockFrequency" value="120000000"/>
+        </Parameters>
+    </SDIO2>
+    <SYSTEM>
+        <Mode>
+            <ModeSub name="Time_Base" value="SysTick"/>
+            <ModeSub name="UART_Printf" value="USART1"/>
+        </Mode>
+        <Parameters>
+            <ParametersSub name="Delay_Mode" value="Interrupt"/>
+        </Parameters>
+    </SYSTEM>
+    <USART1>
+        <Mode>
+            <ModeSub name="Mode" value="Asynchronous"/>
+        </Mode>
+        <Parameters>
+            <ParametersSub name="RealBaudRate" value="115163"/>
+        </Parameters>
+    </USART1>
+    <USBFS>
+        <Mode>
+            <ModeSub name="Device" value="TRUE"/>
+        </Mode>
+    </USBFS>
+    <USB_DEVICE>
+        <Mode>
+            <ModeSub name="FS_Device" value="MSC"/>
+        </Mode>
+    </USB_DEVICE>
+    <NVIC>
+        <SysTick_Handler>1;15;0;0;0</SysTick_Handler>
+        <FLASH_IRQHandler>0;0;0;0;0</FLASH_IRQHandler>
+        <CRM_IRQHandler>0;0;0;0;0</CRM_IRQHandler>
+        <USART1_IRQHandler>0;0;0;0;0</USART1_IRQHandler>
+        <USBFSWakeUp_IRQHandler>0;0;0;0;0</USBFSWakeUp_IRQHandler>
+        <SDIO2_IRQHandler>0;0;0;0;0</SDIO2_IRQHandler>
+        <ACC_IRQHandler>0;0;0;0;0</ACC_IRQHandler>
+        <USBFS_MAPH_IRQHandler>0;0;0;0;0</USBFS_MAPH_IRQHandler>
+        <USBFS_MAPL_IRQHandler>1;0;0;0;0</USBFS_MAPL_IRQHandler>
+    </NVIC>
+    <ClockConfiguration>
+        <rtcsel>0</rtcsel>
+        <hext>8.000000</hext>
+        <hextdiv>2</hextdiv>
+        <pllhextdiv>0</pllhextdiv>
+        <pllrcs>1</pllrcs>
+        <pllmult>60</pllmult>
+        <sclkselect>1</sclkselect>
+        <ahbdiv>1</ahbdiv>
+        <apb1div>2</apb1div>
+        <apb2div>2</apb2div>
+        <usbdiv>4.0</usbdiv>
+        <hicktousb>1</hicktousb>
+        <hicktosclk>0</hicktosclk>
+        <clkout>0</clkout>
+        <clkoutdiv>1</clkoutdiv>
+        <adcdiv>6</adcdiv>
+        <systicsel>8</systicsel>
+    </ClockConfiguration>
+    <PINInfo>
+        <PinSub pinname="PD0/HEXT_IN" signalname="CRM_HEXT_IN" signaltype="2"/>
+        <PinSub pinname="PD1/HEXT_OUT" signalname="CRM_HEXT_OUT" signaltype="2"/>
+        <PinSub pinname="PA4" signalname="SDIO2_D0" signaltype="2"/>
+        <PinSub pinname="PA5" signalname="SDIO2_D1" signaltype="2"/>
+        <PinSub pinname="PA6" signalname="SDIO2_D2" signaltype="2"/>
+        <PinSub pinname="PA7" signalname="SDIO2_D3" signaltype="2"/>
+        <PinSub pinname="PC4" signalname="SDIO2_CK" signaltype="2"/>
+        <PinSub pinname="PC5" signalname="SDIO2_CMD" signaltype="2"/>
+        <PinSub pinname="PA9" signalname="USART1_TX" signaltype="2"/>
+        <PinSub pinname="PA10" signalname="USART1_RX" signaltype="2"/>
+        <PinSub pinname="PA11" signalname="USBFS_D-" signaltype="2"/>
+        <PinSub pinname="PA12" signalname="USBFS_D+" signaltype="2"/>
+        <PinSub pinname="PA13" signalname="DEBUG_JTMS_SWDIO" signaltype="2"/>
+        <PinSub pinname="PA14" signalname="DEBUG_JTCK_SWCLK" signaltype="2"/>
+        <PinSub pinname="PB3" signalname="DEBUG_SWO" signaltype="2"/>
+    </PINInfo>
+    <ProjectInfomation>
+        <ProjectName>dwin_sd_switch_AT32F403ARGT7</ProjectName>
+        <ProjectLocation>D:/Code_Project/AT32_WK_Proj</ProjectLocation>
+        <ToolchainIDE>MDK_V5</ToolchainIDE>
+        <ARMCompiler>0</ARMCompiler>
+        <KeepUserCode>true</KeepUserCode>
+        <NotUsedPinAnalog>false</NotUsedPinAnalog>
+        <CodeSplitIP>true</CodeSplitIP>
+        <AddNecessaryFileFlag>false</AddNecessaryFileFlag>
+        <MinHeapSize>0x200</MinHeapSize>
+        <MinStackSize>0x400</MinStackSize>
+        <UseFirmware>true</UseFirmware>
+        <PackageVersion>V2.2.2</PackageVersion>
+    </ProjectInfomation>
+</Root>
