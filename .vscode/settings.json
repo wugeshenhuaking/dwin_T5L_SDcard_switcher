@@ -1,6 +1,0 @@
-{
-  "files.associations": {
-    "wk_system.h": "c",
-    "bsp_led.h": "c"
-  }
-}
