@@ -51,7 +51,7 @@
 
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
-
+extern volatile uint32_t g_debug_counter; // 引用它
 /* add user code end private variables */
 
 /* private function prototypes --------------------------------------------*/
@@ -112,8 +112,22 @@ uint8_t *get_inquiry(uint8_t lun)
 usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32_t len)
 {
   /* add user code begin msc_disk_read 0 */
-  sd_error_status_type status = SD_OK;
-
+  if (lun == SD_LUN)
+  {
+      /*
+       * 调用底层读函数
+       * 参数1: 缓冲区
+       * 参数2: 字节地址 = 块地址(addr) * 512
+       * 参数3: 块大小 = 512
+       * 参数4: 块数量 = len
+       */
+      if(sd_mult_blocks_read(read_buf, (long long)addr * 512, 512, len) == SD_OK)
+      {
+          /* 等待传输完成 (必须加！否则数据还没拷完USB就拿走了) */
+          return USB_OK; /* 直接返回 */
+      }
+      return USB_FAIL;
+  }
   /* add user code end msc_disk_read 0 */
 
   switch(lun)
@@ -146,8 +160,18 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
 usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t len)
 {
   /* add user code begin msc_disk_write 0 */
-  sd_error_status_type status = SD_OK;
-
+  if (lun == SD_LUN)
+  {
+      /*
+       * 调用底层写函数 (sd_mult_blocks_write)
+       * 参数逻辑同读取
+       */
+      if(sd_mult_blocks_write(buf, (long long)addr * 512, 512, len) == SD_OK)
+      {
+          return USB_OK; /* 驱动内部已处理忙检测，直接返回成功 */
+      }
+      return USB_FAIL;
+  }
   /* add user code end msc_disk_write 0 */
 
   switch(lun)
@@ -180,6 +204,26 @@ usb_sts_type msc_disk_capacity(uint8_t lun, uint32_t *blk_nbr, uint32_t *blk_siz
 {
   /* add user code begin msc_disk_capacity 0 */
   sd_card_info_struct_type card_info;
+  if (lun == SD_LUN) // 确保是 SD 卡
+  {
+      /* 获取卡信息 */
+      if(sd_card_info_get(&card_info) == SD_OK)
+      {
+          /* 
+           * 计算块数量。
+           * card_capacity 在库里通常是字节数 (Bytes)。
+           * 所以 总块数 = 总字节 / 512 
+           */
+          *blk_nbr = card_info.card_capacity / 512;
+          *blk_size = 512;
+          return USB_OK; /* 【关键】直接返回，不走后面的 switch */
+      }
+      else
+      {
+          return USB_FAIL;
+      }
+  }
+    g_debug_counter++; 
   /* add user code end msc_disk_capacity 0 */
 
   switch(lun)

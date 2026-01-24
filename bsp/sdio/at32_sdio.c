@@ -75,27 +75,27 @@ sd_error_status_type sd_init(void)
 {
   uint16_t clkdiv = 0;
   sd_error_status_type status = SD_OK;
-  gpio_init_type gpio_init_struct = {0};
+//  gpio_init_type gpio_init_struct = {0};
   uint8_t retry = 0;
 
   /* gpioc and gpiod periph clock enable */
-  crm_periph_clock_enable(CRM_GPIOC_PERIPH_CLOCK, TRUE);
-  crm_periph_clock_enable(CRM_GPIOD_PERIPH_CLOCK, TRUE);
+//  crm_periph_clock_enable(CRM_GPIOC_PERIPH_CLOCK, TRUE);
+//  crm_periph_clock_enable(CRM_GPIOD_PERIPH_CLOCK, TRUE);
 
-  /* sdio periph clock enable */
-  crm_periph_clock_enable(CRM_SDIO1_PERIPH_CLOCK, TRUE);
+//  /* sdio periph clock enable */
+//  crm_periph_clock_enable(CRM_SDIO1_PERIPH_CLOCK, TRUE);
 
-  /* configure pc.08, pc.09, pc.10, pc.11, pc.12 pin: d0, d1, d2, d3, clk pin */
-  gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
-  gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
-  gpio_init_struct.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
-  gpio_init_struct.gpio_pins = GPIO_PINS_8 | GPIO_PINS_9 | GPIO_PINS_10 | GPIO_PINS_11 | GPIO_PINS_12;
-  gpio_init_struct.gpio_pull = GPIO_PULL_NONE;
-  gpio_init(GPIOC, &gpio_init_struct);
+//  /* configure pc.08, pc.09, pc.10, pc.11, pc.12 pin: d0, d1, d2, d3, clk pin */
+//  gpio_init_struct.gpio_drive_strength = GPIO_DRIVE_STRENGTH_STRONGER;
+//  gpio_init_struct.gpio_mode = GPIO_MODE_MUX;
+//  gpio_init_struct.gpio_out_type = GPIO_OUTPUT_PUSH_PULL;
+//  gpio_init_struct.gpio_pins = GPIO_PINS_8 | GPIO_PINS_9 | GPIO_PINS_10 | GPIO_PINS_11 | GPIO_PINS_12;
+//  gpio_init_struct.gpio_pull = GPIO_PULL_NONE;
+//  gpio_init(GPIOC, &gpio_init_struct);
 
-  /* configure pd.02 cmd line */
-  gpio_init_struct.gpio_pins = GPIO_PINS_2;
-  gpio_init(GPIOD, &gpio_init_struct);
+//  /* configure pd.02 cmd line */
+//  gpio_init_struct.gpio_pins = GPIO_PINS_2;
+//  gpio_init(GPIOD, &gpio_init_struct);
 
   retry = 3;
   while(retry--){

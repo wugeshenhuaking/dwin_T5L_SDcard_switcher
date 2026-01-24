@@ -3,8 +3,7 @@
   * @file     at32f403a_407_flash.c
   * @brief    contains all the functions for the flash firmware library
   **************************************************************************
-  *
-  * Copyright (c) 2025, Artery Technology, All rights reserved.
+  *                       Copyright notice & Disclaimer
   *
   * The software Board Support Package (BSP) that is made available to
   * download from Artery official website is the copyrighted work of Artery.
@@ -393,7 +392,7 @@ void flash_spim_unlock(void)
 {
   FLASH->unlock3 = FLASH_UNLOCK_KEY1;
   FLASH->unlock3 = FLASH_UNLOCK_KEY2;
-  UNUSED(*(__IO uint32_t*)USD_BASE);
+  UNUSED(*(__IO uint32_t*)USD_BASE);  
 }
 
 /**
@@ -1037,8 +1036,8 @@ void flash_interrupt_enable(uint32_t flash_int, confirm_state new_state)
   */
 void flash_spim_model_select(flash_spim_model_type mode)
 {
-  UNUSED(*(__IO uint32_t*)USD_BASE);
   FLASH->select = mode;
+
   /* dummy read */
   flash_spim_dummy_read();
 }

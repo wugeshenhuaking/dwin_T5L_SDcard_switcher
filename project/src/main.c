@@ -57,6 +57,7 @@
 
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
+volatile uint32_t g_debug_counter = 0; // 定义一个计数器
 
 /* add user code end private variables */
 
@@ -121,7 +122,17 @@ int main(void)
   {
       // SD卡初始化失败！
       // 可以在这里亮一个红灯，方便你排查硬件问题
-      // while(1); // 如果卡坏了，死在这里排查
+      while(1)
+      {
+        printf("sd card init failure!!\n");
+        printf("sd card sd_status = %d\n",sd_status);
+        wk_delay_ms(1000);
+      }
+  }
+  else 
+  {
+    printf("sd card init success!!\n");
+    printf("sd card sd_status = %d\n",sd_status);
   }
   /* add user code end 2 */
 
@@ -130,8 +141,8 @@ int main(void)
      wk_usb_app_task();
 
     /* add user code begin 3 */
-
       printf("hello world \n");
+      wk_delay_ms(1000);
     /* 
      * [高级技巧] 睡眠指令 (Wait For Interrupt)
      * 如果所有任务都处理完了，让 CPU 睡一会儿，等 SysTick 中断来了再醒。

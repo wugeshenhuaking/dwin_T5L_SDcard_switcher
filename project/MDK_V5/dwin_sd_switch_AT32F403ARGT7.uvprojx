@@ -16,7 +16,7 @@
         <TargetCommonOption>
           <Device>-AT32F403ARGT7</Device>
           <Vendor>ArteryTek</Vendor>
-          <PackID>ArteryTek.AT32F403A_407_DFP.2.1.9</PackID>
+          <PackID>ArteryTek.AT32F403A_407_DFP.2.2.3</PackID>
           <Cpu>IRAM(0x20000000,0x18000) IROM(0x08000000,0x100000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
           <StartupFile></StartupFile>
@@ -434,14 +434,14 @@
               <FilePath>../src/usb_app.c</FilePath>
             </File>
             <File>
-              <FileName>rtc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\rtc.c</FilePath>
-            </File>
-            <File>
               <FileName>wk_gpio.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\wk_gpio.c</FilePath>
+            </File>
+            <File>
+              <FileName>rtc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\src\rtc.c</FilePath>
             </File>
           </Files>
         </Group>

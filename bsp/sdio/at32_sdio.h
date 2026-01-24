@@ -46,7 +46,7 @@ extern "C" {
   * @{
   */
 
-#define SDIOx                            SDIO1
+#define SDIOx                            SDIO2
 
 /**
   * @}

@@ -3,8 +3,7 @@
   * @file     at32f403a_407_gpio.h
   * @brief    at32f403a_407 gpio header file
   **************************************************************************
-  *
-  * Copyright (c) 2025, Artery Technology, All rights reserved.
+  *                       Copyright notice & Disclaimer
   *
   * The software Board Support Package (BSP) that is made available to
   * download from Artery official website is the copyrighted work of Artery.
@@ -912,7 +911,6 @@ flag_status gpio_output_data_bit_read(gpio_type *gpio_x, uint16_t pins);
 uint16_t gpio_output_data_read(gpio_type *gpio_x);
 void gpio_bits_set(gpio_type *gpio_x, uint16_t pins);
 void gpio_bits_reset(gpio_type *gpio_x, uint16_t pins);
-void gpio_bits_toggle(gpio_type *gpio_x, uint16_t pins);
 void gpio_bits_write(gpio_type *gpio_x, uint16_t pins, confirm_state bit_state);
 void gpio_port_write(gpio_type *gpio_x, uint16_t port_value);
 void gpio_pin_wp_config(gpio_type *gpio_x, uint16_t pins);
