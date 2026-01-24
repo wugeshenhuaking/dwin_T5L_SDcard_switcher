@@ -31,6 +31,7 @@
 #include "wk_sdio.h"
 #include "wk_usart.h"
 #include "wk_usbfs.h"
+#include "wk_gpio.h"
 #include "usb_app.h"
 #include "wk_system.h"
 
@@ -95,6 +96,9 @@ int main(void)
   /* timebase config. */
   wk_timebase_init();
 
+  /* init gpio function. */
+  wk_gpio_config();
+
   /* init usart1 function. */
   wk_usart1_init();
 
@@ -111,9 +115,14 @@ int main(void)
   wk_usb_app_init();
 
   /* add user code begin 2 */
-     /* 尝试初始化 SD 卡 */
-  sd_init();
-
+  /* 尝试初始化 SD 卡 */
+  sd_error_status_type sd_status = sd_init();
+  if(sd_status != SD_OK)
+  {
+      // SD卡初始化失败！
+      // 可以在这里亮一个红灯，方便你排查硬件问题
+      // while(1); // 如果卡坏了，死在这里排查
+  }
   /* add user code end 2 */
 
   while(1)

@@ -73,6 +73,11 @@
         <USBFS_MAPH_IRQHandler>0;0;0;0;0</USBFS_MAPH_IRQHandler>
         <USBFS_MAPL_IRQHandler>1;0;0;0;0</USBFS_MAPL_IRQHandler>
     </NVIC>
+    <GPIO>
+        <Signal SignalName="GPIO_Output" PinName="PB11">
+            <Parameters name="Label" value="TF_CARD_SWITCH_PIN"/>
+        </Signal>
+    </GPIO>
     <ClockConfiguration>
         <rtcsel>0</rtcsel>
         <hext>8.000000</hext>
@@ -101,6 +106,7 @@
         <PinSub pinname="PA7" signalname="SDIO2_D3" signaltype="2"/>
         <PinSub pinname="PC4" signalname="SDIO2_CK" signaltype="2"/>
         <PinSub pinname="PC5" signalname="SDIO2_CMD" signaltype="2"/>
+        <PinSub pinname="PB11" signalname="GPIO_Output" signaltype="3"/>
         <PinSub pinname="PA9" signalname="USART1_TX" signaltype="2"/>
         <PinSub pinname="PA10" signalname="USART1_RX" signaltype="2"/>
         <PinSub pinname="PA11" signalname="USBFS_D-" signaltype="2"/>
@@ -111,7 +117,7 @@
     </PINInfo>
     <ProjectInfomation>
         <ProjectName>dwin_sd_switch_AT32F403ARGT7</ProjectName>
-        <ProjectLocation>D:/CodeProjects/AT32IDE_Proj/dwin_T5L_SDcard_switcher</ProjectLocation>
+        <ProjectLocation>D:/Code_Project/AT32_WK_Proj</ProjectLocation>
         <ToolchainIDE>MDK_V5</ToolchainIDE>
         <ARMCompiler>0</ARMCompiler>
         <KeepUserCode>true</KeepUserCode>

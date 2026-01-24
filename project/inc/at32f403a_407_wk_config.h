@@ -114,6 +114,10 @@ extern "C" {
 //#define DMA2_CHANNEL7_PERIPHERAL_BASE_ADDR   0
 /* add user code end dma define */
 
+/* Private defines -------------------------------------------------------------*/
+#define TF_CARD_SWITCH_PIN_PIN    GPIO_PINS_11
+#define TF_CARD_SWITCH_PIN_GPIO_PORT    GPIOB
+
 /* exported functions ------------------------------------------------------- */
   /* system clock config. */
   void wk_system_clock_config(void);
