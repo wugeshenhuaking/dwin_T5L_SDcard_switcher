@@ -87,7 +87,7 @@ void wk_usb_app_init(void)
   usbd_connect(&usb_core_dev);
 
   /* add user code begin usb_app_init 1 */
-
+  
   /* add user code end usb_app_init 1 */
 }
 
