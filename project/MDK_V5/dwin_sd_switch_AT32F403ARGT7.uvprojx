@@ -404,11 +404,6 @@
               <FilePath>..\src\wk_system.c</FilePath>
             </File>
             <File>
-              <FileName>wk_acc.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\src\wk_acc.c</FilePath>
-            </File>
-            <File>
               <FileName>wk_debug.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\src\wk_debug.c</FilePath>

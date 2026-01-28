@@ -174,9 +174,6 @@ void wk_periph_clock_config(void)
   /* enable usart1 periph clock */
   crm_periph_clock_enable(CRM_USART1_PERIPH_CLOCK, TRUE);
 
-  /* enable acc periph clock */
-  crm_periph_clock_enable(CRM_ACC_PERIPH_CLOCK, TRUE);
-
   /* enable usb periph clock */
   crm_periph_clock_enable(CRM_USB_PERIPH_CLOCK, TRUE);
 }

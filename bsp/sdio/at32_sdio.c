@@ -2804,22 +2804,45 @@ void sd_dma_config(uint32_t *mbuf, uint32_t buf_size, dma_dir_type dir)
 
   crm_periph_clock_enable(CRM_DMA2_PERIPH_CLOCK, TRUE);
 
-  dma_reset(DMA2_CHANNEL4);
-  dma_channel_enable(DMA2_CHANNEL4, FALSE);
+  if(SDIOx == SDIO1)
+  {
+    dma_reset(DMA2_CHANNEL4);
+    dma_channel_enable(DMA2_CHANNEL4, FALSE);
 
-  dma_init_struct.peripheral_base_addr = (uint32_t)&SDIOx->buf;
-  dma_init_struct.memory_base_addr = (uint32_t)mbuf;
-  dma_init_struct.direction = dir;
-  dma_init_struct.buffer_size = buf_size / 4;
-  dma_init_struct.peripheral_inc_enable = FALSE;
-  dma_init_struct.memory_inc_enable = TRUE;
-  dma_init_struct.peripheral_data_width = DMA_PERIPHERAL_DATA_WIDTH_WORD;
-  dma_init_struct.memory_data_width = DMA_MEMORY_DATA_WIDTH_WORD;
-  dma_init_struct.loop_mode_enable = FALSE;
-  dma_init_struct.priority = DMA_PRIORITY_HIGH;
-  dma_init(DMA2_CHANNEL4, &dma_init_struct);
+    dma_init_struct.peripheral_base_addr = (uint32_t)&SDIOx->buf;
+    dma_init_struct.memory_base_addr = (uint32_t)mbuf;
+    dma_init_struct.direction = dir;
+    dma_init_struct.buffer_size = buf_size / 4;
+    dma_init_struct.peripheral_inc_enable = FALSE;
+    dma_init_struct.memory_inc_enable = TRUE;
+    dma_init_struct.peripheral_data_width = DMA_PERIPHERAL_DATA_WIDTH_WORD;
+    dma_init_struct.memory_data_width = DMA_MEMORY_DATA_WIDTH_WORD;
+    dma_init_struct.loop_mode_enable = FALSE;
+    dma_init_struct.priority = DMA_PRIORITY_HIGH;
+    dma_init(DMA2_CHANNEL4, &dma_init_struct);
 
-  dma_channel_enable(DMA2_CHANNEL4, TRUE);
+    dma_channel_enable(DMA2_CHANNEL4, TRUE);
+  }
+  else if(SDIOx == SDIO2)
+  {
+    dma_reset(DMA2_CHANNEL5);
+    dma_channel_enable(DMA2_CHANNEL5, FALSE);
+
+    dma_init_struct.peripheral_base_addr = (uint32_t)&SDIOx->buf;
+    dma_init_struct.memory_base_addr = (uint32_t)mbuf;
+    dma_init_struct.direction = dir;
+    dma_init_struct.buffer_size = buf_size / 4;
+    dma_init_struct.peripheral_inc_enable = FALSE;
+    dma_init_struct.memory_inc_enable = TRUE;
+    dma_init_struct.peripheral_data_width = DMA_PERIPHERAL_DATA_WIDTH_WORD;
+    dma_init_struct.memory_data_width = DMA_MEMORY_DATA_WIDTH_WORD;
+    dma_init_struct.loop_mode_enable = FALSE;
+    dma_init_struct.priority = DMA_PRIORITY_HIGH;
+    dma_init(DMA2_CHANNEL5, &dma_init_struct);
+
+    dma_channel_enable(DMA2_CHANNEL5, TRUE);
+  }
+
 }
 
 /**

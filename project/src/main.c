@@ -26,7 +26,6 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "at32f403a_407_wk_config.h"
-#include "wk_acc.h"
 #include "wk_debug.h"
 #include "wk_sdio.h"
 #include "wk_usart.h"
@@ -37,6 +36,9 @@
 
 /* private includes ----------------------------------------------------------*/
 /* add user code begin private includes */
+#include <ctype.h> // 用于显示ASCII字符
+#include <stdio.h>
+#include <string.h>
 #include "at32_sdio.h"
 /* add user code end private includes */
 
@@ -47,6 +49,11 @@
 
 /* private define ------------------------------------------------------------*/
 /* add user code begin private define */
+
+/* 定义读取多少个块，这里测试连续读 2 个块 */
+#define TEST_BLOCK_COUNT  2
+#define TEST_BLOCK_SIZE   512
+#define TEST_BUF_SIZE     (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE)
 
 /* add user code end private define */
 
@@ -59,6 +66,12 @@
 /* add user code begin private variables */
 volatile uint32_t g_debug_counter = 0; // 定义一个计数器
 
+/* 
+ * 定义接收缓冲区 
+ * 注意：使用 DMA 时，缓冲区必须 4 字节对齐！
+ */
+__attribute__((aligned(4))) uint8_t read_buffer[TEST_BUF_SIZE];
+
 /* add user code end private variables */
 
 /* private function prototypes --------------------------------------------*/
@@ -69,6 +82,101 @@ volatile uint32_t g_debug_counter = 0; // 定义一个计数器
 /* private user code ---------------------------------------------------------*/
 /* add user code begin 0 */
 
+/**
+  * @brief  安全的多块读取测试 (只读不写)
+  */
+void SD_Safe_Read_Test(void)
+{
+    sd_error_status_type status = SD_OK;
+    
+    printf("\r\n=== SDIO Safe Multi-Block Read Test ===\r\n");
+
+    /* 1. 确保 SD 卡已初始化 */
+    /* 如果 main 函数开头已经调用过 sd_init，这里可以注释掉，或者再调一次也无妨 */
+    status = sd_init();
+    if(status != SD_OK)
+    {
+        printf("SD Init Failed! Error: %d\r\n", status);
+        return;
+    }
+    printf("SD Init OK.\r\n");
+
+    /* 2. 配置总线宽度为 4-bit (速度更快) */
+    /* 如果你的硬件 D1-D3 没接好，这里会报错，可以改成 D1 */
+    status = sd_wide_bus_operation_config(SDIO_BUS_WIDTH_D4);
+    if(status != SD_OK)
+    {
+        printf("Warning: 4-bit mode failed, trying 1-bit...\r\n");
+        sd_wide_bus_operation_config(SDIO_BUS_WIDTH_D1);
+    }
+
+    /* 3. 预填充缓冲区 (用于验证 DMA 是否真的工作) */
+    memset(read_buffer, 0xCC, TEST_BUF_SIZE);
+
+    /* 4. 执行多块读取 */
+    printf("Reading %d Blocks from Address 0...\r\n", TEST_BLOCK_COUNT);
+    
+    /* 
+     * 调用官方库的多块读取函数
+     * 参数1: 接收缓冲区
+     * 参数2: 读取地址 (对于 AT32 标准库，通常传 字节地址，即 0)
+     * 参数3: 块大小 (512)
+     * 参数4: 块数量 (2)
+     */
+    status = sd_mult_blocks_read(read_buffer, 0, TEST_BLOCK_SIZE, TEST_BLOCK_COUNT);
+
+    if(status == SD_OK)
+    {
+        printf("Read Success! Data Dump:\r\n");
+        printf("=================================================================\r\n");
+        printf("Offset | Hex Data                                      | ASCII   \r\n");
+        printf("-------|-----------------------------------------------|---------\r\n");
+
+        /* 打印数据内容 */
+        for (int i = 0; i < TEST_BUF_SIZE; i += 16)
+        {
+            if(i % 512 == 0) printf("[Block %d Start]\r\n", i/512);
+            
+            printf("0x%04X | ", i);
+
+            // 打印 Hex
+            for (int j = 0; j < 16; j++)
+            {
+                if (i + j < TEST_BUF_SIZE)
+                    printf("%02X ", read_buffer[i + j]);
+                else
+                    printf("   ");
+            }
+            printf("| ");
+
+            // 打印 ASCII (方便查看 FAT32 标志)
+            for (int j = 0; j < 16; j++)
+            {
+                if (i + j < TEST_BUF_SIZE)
+                {
+                    uint8_t c = read_buffer[i + j];
+                    if (isprint(c)) printf("%c", c);
+                    else printf(".");
+                }
+            }
+            printf("\r\n");
+        }
+        printf("=================================================================\r\n");
+        
+        /* 检查 MBR 标志位 */
+        if(read_buffer[510] == 0x55 && read_buffer[511] == 0xAA)
+        {
+            printf(">>> Valid Boot Sector Signature (55 AA) found! <<<\r\n");
+        }
+    }
+    else
+    {
+        printf("Read Failed! Error Code: %d\r\n", status);
+        /* 即使失败，也打印前16个字节看看是不是全是 0xCC (DMA没动) 还是 0x00 (线路断) */
+        printf("Buffer Head: %02X %02X %02X %02X\r\n", 
+               read_buffer[0], read_buffer[1], read_buffer[2], read_buffer[3]);
+    }
+}
 /* add user code end 0 */
 
 /**
@@ -106,9 +214,6 @@ int main(void)
   /* init sdio2 function. */
   wk_sdio2_init();
 
-  /* init acc function. */
-  wk_acc_init();
-
   /* init usbfs function. */
   wk_usbfs_init();
 
@@ -133,6 +238,9 @@ int main(void)
   {
     printf("sd card init success!!\n");
     printf("sd card sd_status = %d\n",sd_status);
+    printf("Start Test...\r\n");
+   /* 调用我给你的只读测试函数 */
+    SD_Safe_Read_Test();
   }
   /* add user code end 2 */
 
@@ -141,8 +249,8 @@ int main(void)
      wk_usb_app_task();
 
     /* add user code begin 3 */
-      printf("hello world \n");
-      wk_delay_ms(1000);
+    printf("hello world \n");
+    wk_delay_ms(1000);
     /* 
      * [高级技巧] 睡眠指令 (Wait For Interrupt)
      * 如果所有任务都处理完了，让 CPU 睡一会儿，等 SysTick 中断来了再醒。

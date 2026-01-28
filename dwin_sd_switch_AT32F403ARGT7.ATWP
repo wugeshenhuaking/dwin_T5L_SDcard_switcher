@@ -8,11 +8,6 @@
         <MCUName>AT32F403ARGT7</MCUName>
         <MCUPackage>LQFP64</MCUPackage>
     </MCUInfo>
-    <ACC>
-        <Mode>
-            <ModeSub name="ACC_State" value="TRUE"/>
-        </Mode>
-    </ACC>
     <CRM>
         <Mode>
             <ModeSub name="HEXT" value="HEXT-External-Oscillator"/>
@@ -63,13 +58,13 @@
         </Mode>
     </USB_DEVICE>
     <NVIC>
+        <ShowType>1</ShowType>
         <SysTick_Handler>1;15;0;0;0</SysTick_Handler>
         <FLASH_IRQHandler>0;0;0;0;0</FLASH_IRQHandler>
         <CRM_IRQHandler>0;0;0;0;0</CRM_IRQHandler>
         <USART1_IRQHandler>0;0;0;0;0</USART1_IRQHandler>
         <USBFSWakeUp_IRQHandler>0;0;0;0;0</USBFSWakeUp_IRQHandler>
         <SDIO2_IRQHandler>0;0;0;0;0</SDIO2_IRQHandler>
-        <ACC_IRQHandler>0;0;0;0;0</ACC_IRQHandler>
         <USBFS_MAPH_IRQHandler>0;0;0;0;0</USBFS_MAPH_IRQHandler>
         <USBFS_MAPL_IRQHandler>1;0;0;0;0</USBFS_MAPL_IRQHandler>
     </NVIC>
