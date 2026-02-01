@@ -8,6 +8,11 @@
         <MCUName>AT32F403ARGT7</MCUName>
         <MCUPackage>LQFP64</MCUPackage>
     </MCUInfo>
+    <ACC>
+        <Mode>
+            <ModeSub name="ACC_State" value="TRUE"/>
+        </Mode>
+    </ACC>
     <CRM>
         <Mode>
             <ModeSub name="HEXT" value="HEXT-External-Oscillator"/>
@@ -64,9 +69,10 @@
         <CRM_IRQHandler>0;0;0;0;0</CRM_IRQHandler>
         <USART1_IRQHandler>0;0;0;0;0</USART1_IRQHandler>
         <USBFSWakeUp_IRQHandler>0;0;0;0;0</USBFSWakeUp_IRQHandler>
-        <SDIO2_IRQHandler>0;0;0;0;0</SDIO2_IRQHandler>
+        <SDIO2_IRQHandler>1;0;0;0;0</SDIO2_IRQHandler>
+        <ACC_IRQHandler>0;0;0;0;0</ACC_IRQHandler>
         <USBFS_MAPH_IRQHandler>0;0;0;0;0</USBFS_MAPH_IRQHandler>
-        <USBFS_MAPL_IRQHandler>1;0;0;0;0</USBFS_MAPL_IRQHandler>
+        <USBFS_MAPL_IRQHandler>1;1;0;0;0</USBFS_MAPL_IRQHandler>
     </NVIC>
     <GPIO>
         <Signal SignalName="GPIO_Output" PinName="PB11">
@@ -112,7 +118,7 @@
     </PINInfo>
     <ProjectInfomation>
         <ProjectName>dwin_sd_switch_AT32F403ARGT7</ProjectName>
-        <ProjectLocation>D:/CodeProjects/AT32IDE_Proj/dwin_T5L_SDcard_switcher</ProjectLocation>
+        <ProjectLocation>D:/Code_Project/AT32_WK_Proj</ProjectLocation>
         <ToolchainIDE>MDK_V5</ToolchainIDE>
         <ARMCompiler>0</ARMCompiler>
         <KeepUserCode>true</KeepUserCode>
@@ -122,6 +128,6 @@
         <MinHeapSize>0x200</MinHeapSize>
         <MinStackSize>0x400</MinStackSize>
         <UseFirmware>true</UseFirmware>
-        <PackageVersion>V2.2.0</PackageVersion>
+        <PackageVersion>V2.2.2</PackageVersion>
     </ProjectInfomation>
 </Root>

@@ -28,7 +28,7 @@
 #include "wk_sdio.h"
 
 /* add user code begin 0 */
-
+#include "at32_sdio.h"
 /* add user code end 0 */
 
 /**

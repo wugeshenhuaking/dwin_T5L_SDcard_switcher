@@ -52,6 +52,8 @@
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
 extern volatile uint32_t g_debug_counter; // 引用它
+/* 定义一个 4字节对齐的中间缓冲区，大小为一个扇区 512 字节 */
+__attribute__((aligned(4))) uint8_t sd_dma_buffer[512]; 
 /* add user code end private variables */
 
 /* private function prototypes --------------------------------------------*/
@@ -61,7 +63,17 @@ extern volatile uint32_t g_debug_counter; // 引用它
 
 /* private user code ---------------------------------------------------------*/
 /* add user code begin 0 */
-
+/* 
+ * 辅助函数：等待 SD 卡回到传输状态 (空闲)
+ * 写操作后必须调用，否则连续写入会报错
+ */
+static void wait_sd_ready(void)
+{
+    // 获取状态需要时间，循环检测直到状态变为 4 (Transfer Mode)
+    // 防止死循环，加个计数器（虽然一般不会死）
+    uint32_t timeout = 0xFFFFF;
+    while(sd_state_get() != SD_CARD_TRANSFER && timeout--);
+}
 /* add user code end 0 */
 
 uint8_t scsi_inquiry[MSC_SUPPORT_MAX_LUN][SCSI_INQUIRY_DATA_LENGTH] =
@@ -112,22 +124,49 @@ uint8_t *get_inquiry(uint8_t lun)
 usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32_t len)
 {
   /* add user code begin msc_disk_read 0 */
-  if (lun == SD_LUN)
+    extern volatile uint32_t g_debug_counter;
+
+  extern volatile uint8_t g_sd_is_ready; // 引用
+  g_debug_counter++;
+
+//  if (g_sd_is_ready == 0)
+//  {
+//      return USB_FAIL; // 卡都没了，直接拒单
+//  }
+  // 强制接管 LUN 0
+  if (lun == 0 || lun == SD_LUN)
   {
-      /*
-       * 调用底层读函数
-       * 参数1: 缓冲区
-       * 参数2: 字节地址 = 块地址(addr) * 512
-       * 参数3: 块大小 = 512
-       * 参数4: 块数量 = len
-       */
-      if(sd_mult_blocks_read(read_buf, (long long)addr * 512, 512, len) == SD_OK)
-      {
-          /* 等待传输完成 (必须加！否则数据还没拷完USB就拿走了) */
-          return USB_OK; /* 直接返回 */
-      }
-      return USB_FAIL;
+//      uint32_t i;
+//      uint32_t block_cnt = len ; 
+
+//      /* 循环处理每一个扇区 (512字节) */
+//      for (i = 0; i < block_cnt; i++)
+//      {
+//        
+//          long long byte_addr = ((long long)addr + i) * 512;
+
+//          /* 1. 先用 DMA 读到对齐的中间缓冲区 */
+//          if (sd_mult_blocks_read(sd_dma_buffer, byte_addr, 512, 1) != SD_OK)
+//          {
+//              return USB_FAIL;
+//          }
+//          
+//          wait_sd_ready();
+
+//          
+//          /* 2. 再用 CPU 把数据搬运给 USB */
+//          memcpy(read_buf + (i * 512), sd_dma_buffer, 512);
+//      }
+////            memset(read_buf, 0, len * 512); // 假装读到了数据
+
+//      return USB_OK; // 只有全部搬运完才返回 OK
+      usb_sts_type res;
+      res = (usb_sts_type)sd_read_disk(read_buf, addr/512, len/512);
+      return res;
+
   }
+  
+  return USB_FAIL; // 其他情况返回 Fail
   /* add user code end msc_disk_read 0 */
 
   switch(lun)
@@ -160,17 +199,40 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
 usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t len)
 {
   /* add user code begin msc_disk_write 0 */
-  if (lun == SD_LUN)
+  
+  /* 在 msc_disk_read 和 msc_disk_write 的最开头加入 */
+  extern volatile uint8_t g_sd_is_ready; // 引用
+
+//  if (g_sd_is_ready == 0)
+//  {
+//      return USB_FAIL; // 卡都没了，直接拒单
+//  }
+  if (lun == 0 || lun == SD_LUN)
   {
-      /*
-       * 调用底层写函数 (sd_mult_blocks_write)
-       * 参数逻辑同读取
-       */
-      if(sd_mult_blocks_write(buf, (long long)addr * 512, 512, len) == SD_OK)
-      {
-          return USB_OK; /* 驱动内部已处理忙检测，直接返回成功 */
-      }
-      return USB_FAIL;
+//      uint32_t i;
+//      uint32_t block_cnt = len; /* 转换单位 */
+
+//      for (i = 0; i < block_cnt; i++)
+//      {
+//          /* 1. 先把 USB 的数据搬运到对齐缓冲区 */
+//          memcpy(sd_dma_buffer, buf + (i * 512), 512);
+//          long long byte_addr = ((long long)addr + i) * 512; // 修正溢出
+
+//          /* 2. 再用 DMA 写入 SD 卡 */
+//          if (sd_mult_blocks_write(sd_dma_buffer, byte_addr, 512, 1) != SD_OK)
+//          {
+//              return USB_FAIL;
+//          }
+////                    wait_sd_ready();
+
+////      }
+//      
+//      return USB_OK;
+      
+    usb_sts_type res;
+    res = (usb_sts_type)sd_write_disk(buf, addr/512, len/512);
+    return res;
+
   }
   /* add user code end msc_disk_write 0 */
 
@@ -203,27 +265,24 @@ usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t l
 usb_sts_type msc_disk_capacity(uint8_t lun, uint32_t *blk_nbr, uint32_t *blk_size)
 {
   /* add user code begin msc_disk_capacity 0 */
-  sd_card_info_struct_type card_info;
-  if (lun == SD_LUN) // 确保是 SD 卡
+ /* 调试计数器 */
+  extern volatile uint32_t g_debug_counter;
+    extern volatile uint8_t g_sd_is_ready; // 引用
+
+  g_sd_is_ready =1 ;
+  /* 
+   * 【强制接管】
+   * 只要电脑问的是 0 号盘，或者定义的 SD_LUN，统统当作 SD 卡处理。
+   * 这样能防止逻辑漏过。
+   */
+  if (lun == 0 || lun == SD_LUN) 
   {
-      /* 获取卡信息 */
-      if(sd_card_info_get(&card_info) == SD_OK)
-      {
-          /* 
-           * 计算块数量。
-           * card_capacity 在库里通常是字节数 (Bytes)。
-           * 所以 总块数 = 总字节 / 512 
-           */
-          *blk_nbr = card_info.card_capacity / 512;
-          *blk_size = 512;
-          return USB_OK; /* 【关键】直接返回，不走后面的 switch */
-      }
-      else
-      {
-          return USB_FAIL;
-      }
+      *blk_nbr =sd_card_info.card_capacity/512;
+      *blk_size = 512;
+      return USB_OK; // 此处返回OK，避免枚举失败
+
   }
-    g_debug_counter++; 
+  
   /* add user code end msc_disk_capacity 0 */
 
   switch(lun)

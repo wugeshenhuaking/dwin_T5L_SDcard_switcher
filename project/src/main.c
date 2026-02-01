@@ -26,6 +26,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "at32f403a_407_wk_config.h"
+#include "wk_acc.h"
 #include "wk_debug.h"
 #include "wk_sdio.h"
 #include "wk_usart.h"
@@ -39,12 +40,24 @@
 #include <ctype.h> // 用于显示ASCII字符
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include "at32_sdio.h"
+#include "bsp_dwt.h"
+//#include "wk_acc.h"
+//#include "ffconf.h"
+//#include "ff.h"
 /* add user code end private includes */
 
 /* private typedef -----------------------------------------------------------*/
 /* add user code begin private typedef */
+//FATFS *fs;
+//FIL *file;
+//UINT bw;
+//FRESULT r;
+//DISK_SIZE SD_size;
+//FRESULT res;
 
+//FRESULT Read_DiskSize(DISK_SIZE *disk_size, BYTE pdrv);
 /* add user code end private typedef */
 
 /* private define ------------------------------------------------------------*/
@@ -65,7 +78,7 @@
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
 volatile uint32_t g_debug_counter = 0; // 定义一个计数器
-
+volatile uint8_t g_sd_is_ready = 0; 
 /* 
  * 定义接收缓冲区 
  * 注意：使用 DMA 时，缓冲区必须 4 字节对齐！
@@ -76,6 +89,26 @@ __attribute__((aligned(4))) uint8_t read_buffer[TEST_BUF_SIZE];
 
 /* private function prototypes --------------------------------------------*/
 /* add user code begin function prototypes */
+//FRESULT Read_DiskSize(DISK_SIZE *disk_size, BYTE pdrv)
+//{
+//	FATFS *fs;
+//	FATFS *pfs;
+//	
+//	DWORD fre_clust;
+//	char Buff[3];
+//	sprintf(Buff,"%d:", pdrv);
+//	fs = (FATFS*)malloc(sizeof(FATFS));
+//	res = f_mount(fs,Buff,0);
+//	res = f_getfree(Buff, &fre_clust, &pfs);
+//	if(!res)
+//	{
+//		disk_size->disk_totalsize = (float)(pfs->n_fatent - 2) * pfs->csize/2/1024;
+//		disk_size->disk_freesize = (float)fre_clust * pfs->csize/2/1024;
+//	}
+//	f_mount(NULL, Buff, 0);
+//	free(fs);
+//	return res;
+//}
 
 /* add user code end function prototypes */
 
@@ -187,7 +220,6 @@ void SD_Safe_Read_Test(void)
 int main(void)
 {
   /* add user code begin 1 */
-
   /* add user code end 1 */
 
   /* system clock config. */
@@ -214,6 +246,9 @@ int main(void)
   /* init sdio2 function. */
   wk_sdio2_init();
 
+  /* init acc function. */
+  wk_acc_init();
+
   /* init usbfs function. */
   wk_usbfs_init();
 
@@ -221,8 +256,12 @@ int main(void)
   wk_usb_app_init();
 
   /* add user code begin 2 */
+  
+  dwt_delay_init();
+
   /* 尝试初始化 SD 卡 */
   sd_error_status_type sd_status = sd_init();
+
   if(sd_status != SD_OK)
   {
       // SD卡初始化失败！
@@ -239,9 +278,25 @@ int main(void)
     printf("sd card init success!!\n");
     printf("sd card sd_status = %d\n",sd_status);
     printf("Start Test...\r\n");
+    g_sd_is_ready = 1;
    /* 调用我给你的只读测试函数 */
-    SD_Safe_Read_Test();
+//    SD_Safe_Read_Test();
   }
+  
+  
+//  fs = (FATFS*)malloc(sizeof(FATFS));
+//  file = (FIL*)malloc(sizeof(FIL));
+//  r = f_mount(fs,"0:",0);
+//  r = f_open(file,"0:/at32.txt",FA_WRITE|FA_CREATE_ALWAYS);
+//  r = f_write(file,"hello",5,&bw);
+//  r = f_close(file);
+//  r = f_mount(NULL,"0:",0);
+//  free(fs);
+//  free(file);
+//  Read_DiskSize(&SD_size,0);
+  
+      uint32_t poll_timer = 0;
+
   /* add user code end 2 */
 
   while(1)
@@ -249,7 +304,7 @@ int main(void)
      wk_usb_app_task();
 
     /* add user code begin 3 */
-    printf("hello world \n");
+//    printf("hello world \n");
     wk_delay_ms(1000);
     /* 
      * [高级技巧] 睡眠指令 (Wait For Interrupt)

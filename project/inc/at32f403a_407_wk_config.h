@@ -37,7 +37,7 @@ extern "C" {
 #include "at32f403a_407.h"
 /* private includes -------------------------------------------------------------*/
 /* add user code begin private includes */
-
+#include <string.h>
 /* add user code end private includes */
 
 /* exported types -------------------------------------------------------------*/

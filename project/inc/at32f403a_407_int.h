@@ -67,6 +67,7 @@ void PendSV_Handler(void);
 
 void SysTick_Handler(void);
 
+void SDIO2_IRQHandler(void);
 void USBFS_MAPL_IRQHandler(void);
 /* add user code begin exported functions */
 

@@ -224,6 +224,22 @@ void SysTick_Handler(void)
 }
 
 /**
+  * @brief  this function handles SDIO2 handler.
+  * @param  none
+  * @retval none
+  */
+//void SDIO2_IRQHandler(void)
+//{
+//  /* add user code begin SDIO2_IRQ 0 */
+
+//  /* add user code end SDIO2_IRQ 0 */
+
+//  /* add user code begin SDIO2_IRQ 1 */
+
+//  /* add user code end SDIO2_IRQ 1 */
+//}
+
+/**
   * @brief  this function handles USB Map Low handler.
   * @param  none
   * @retval none

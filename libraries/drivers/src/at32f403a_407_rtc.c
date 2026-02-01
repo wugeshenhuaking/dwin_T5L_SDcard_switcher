@@ -3,7 +3,8 @@
   * @file     at32f403a_407_rtc.c
   * @brief    contains all the functions for the rtc firmware library
   **************************************************************************
-  *                       Copyright notice & Disclaimer
+  *
+  * Copyright (c) 2025, Artery Technology, All rights reserved.
   *
   * The software Board Support Package (BSP) that is made available to
   * download from Artery official website is the copyrighted work of Artery.
@@ -58,11 +59,11 @@ void rtc_counter_set(uint32_t counter_value)
 }
 
 /**
-  * @brief  rtc counter get
+  * @brief  rtc lowlevel counter get
   * @param  none
   * @retval rtc counter
   */
-uint32_t rtc_counter_get(void)
+uint32_t rtc_lowlevel_counter_get(void)
 {
   uint32_t cnt = 0;
 
@@ -70,6 +71,28 @@ uint32_t rtc_counter_get(void)
   cnt = (cnt << 16) | RTC->cntl;
 
   return cnt;
+}
+
+/**
+  * @brief  rtc counter get
+  * @param  none
+  * @retval rtc counter
+  */
+uint32_t rtc_counter_get(void)
+{
+  uint32_t cnt1 = 0;
+  uint32_t cnt2 = 0;
+
+  while(1)
+  {
+    cnt1 = rtc_lowlevel_counter_get();
+    cnt2 = rtc_lowlevel_counter_get();
+
+    if(cnt1 == cnt2)
+    {
+      return cnt1;
+    }
+  }
 }
 
 /**

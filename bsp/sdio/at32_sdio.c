@@ -27,6 +27,7 @@
 #include "at32_sdio.h"
 //#include "at32f403a_407_board.h"
 #include "wk_system.h"
+#include "bsp_dwt.h"
 
 /** @addtogroup AT32F403A_periph_examples
   * @{
@@ -252,7 +253,7 @@ sd_error_status_type sd_power_on(void)
   sdio_power_set(SDIOx, SDIO_POWER_ON);
   /* enable to output sdio_ck */
   sdio_clock_enable(SDIOx, TRUE);
-  wk_delay_ms(10);
+  dwt_delay_ms(10);
   
   for(retry = 0; retry < 5; retry++)
   {
@@ -312,7 +313,7 @@ sd_error_status_type sd_power_on(void)
     /* send acmd41, check voltage operation range */
     while((!valid_voltage) && (count < SD_MAX_VOLT_TRIAL))
     {
-      wk_delay_ms(10);
+      dwt_delay_ms(10);
 
       /* send cmd55 before acmd41 */
       sdio_command_init_struct.argument = 0x00;
@@ -379,7 +380,7 @@ sd_error_status_type sd_power_on(void)
     /* send cmd1 */
     while((!valid_voltage) && (count < SD_MAX_VOLT_TRIAL))
     {
-      wk_delay_ms(10);
+      dwt_delay_ms(10);
 
       sdio_command_init_struct.argument = SD_VOLTAGE_WINDOW_MMC;
       sdio_command_init_struct.cmd_index = SD_CMD_SEND_OP_COND;
@@ -2843,6 +2844,81 @@ void sd_dma_config(uint32_t *mbuf, uint32_t buf_size, dma_dir_type dir)
     dma_channel_enable(DMA2_CHANNEL5, TRUE);
   }
 
+}
+
+#include <string.h>
+__align(4) uint8_t sdio_data_buffer[512];
+sd_error_status_type sd_read_disk(uint8_t *buf, uint32_t sector, uint8_t cnt)
+{
+  sd_error_status_type sta = SD_OK;
+  long long lsector = sector;
+  uint8_t n;
+
+  /* data address is in block (512 byte) units. */
+  lsector <<= 9;
+
+  if((uint32_t)buf % 4 != 0)
+  {
+    for(n = 0; n < cnt; n++)
+    {
+      sta = sd_block_read(sdio_data_buffer, lsector + 512 * n, 512);
+      memcpy(buf, sdio_data_buffer, 512);
+      buf += 512;
+    }
+  }
+  else
+  {
+    if(cnt == 1)
+    {
+      sta = sd_block_read(buf, lsector, 512);
+    }
+    else
+    {
+      sta = sd_mult_blocks_read(buf, lsector, 512, cnt);
+    }
+  }
+
+  return sta;
+}
+
+/**
+  * @brief  write sd card sector
+  * @param  buf: write data buf
+  * @param  sector: sector address
+  * @param  cnt: sector count
+  * @retval sd_error_status_type: sd card error code.
+  */
+sd_error_status_type sd_write_disk(const uint8_t *buf, uint32_t sector, uint8_t cnt)
+{
+  sd_error_status_type sta = SD_OK;
+  uint8_t n;
+  long long lsector = sector;
+
+  /* data address is in block (512 byte) units. */
+  lsector <<= 9;
+
+  if((uint32_t)buf % 4 != 0)
+  {
+    for(n = 0; n < cnt; n++)
+    {
+      memcpy(sdio_data_buffer, buf, 512);
+      sta = sd_block_write(sdio_data_buffer, lsector + 512*n, 512);
+      buf += 512;
+    }
+  }
+  else
+  {
+    if(cnt == 1)
+    {
+      sta = sd_block_write(buf, lsector, 512);
+    }
+    else
+    {
+      sta = sd_mult_blocks_write(buf, lsector, 512, cnt);
+    }
+  }
+
+  return sta;
 }
 
 /**

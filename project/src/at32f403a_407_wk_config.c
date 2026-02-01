@@ -174,6 +174,9 @@ void wk_periph_clock_config(void)
   /* enable usart1 periph clock */
   crm_periph_clock_enable(CRM_USART1_PERIPH_CLOCK, TRUE);
 
+  /* enable acc periph clock */
+  crm_periph_clock_enable(CRM_ACC_PERIPH_CLOCK, TRUE);
+
   /* enable usb periph clock */
   crm_periph_clock_enable(CRM_USB_PERIPH_CLOCK, TRUE);
 }
@@ -194,7 +197,8 @@ void wk_nvic_config(void)
   NVIC_SetPriority(DebugMonitor_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
   NVIC_SetPriority(PendSV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 0, 0));
   NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(), 15, 0));
-  nvic_irq_enable(USBFS_MAPL_IRQn, 0, 0);
+  nvic_irq_enable(SDIO2_IRQn, 1, 0);
+  nvic_irq_enable(USBFS_MAPL_IRQn, 2, 0);
 }
 
 /* add user code begin 1 */

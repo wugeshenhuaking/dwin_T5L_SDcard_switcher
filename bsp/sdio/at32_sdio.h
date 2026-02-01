@@ -65,6 +65,12 @@ typedef enum
   SD_TRANSFER_DMA_MODE                   = 1
 } sd_data_transfer_mode_type;
 
+
+typedef struct
+{
+	volatile float disk_totalsize;
+	volatile float disk_freesize;
+}DISK_SIZE;
 /**
   * sdio error defines
   */
@@ -503,6 +509,9 @@ sd_error_status_type mmc_stream_read(uint8_t *buf, long long addr, uint32_t len)
 sd_error_status_type mmc_stream_write(uint8_t *buf, long long addr, uint32_t len);
 sd_error_status_type sd_irq_service(void);
 void sd_dma_config(uint32_t *mbuf, uint32_t buf_size, dma_dir_type dir);
+sd_error_status_type sd_read_disk(uint8_t *buf, uint32_t sector, uint8_t cnt);
+sd_error_status_type sd_write_disk(const uint8_t *buf, uint32_t sector, uint8_t cnt);
+
 
 /**
   * @}

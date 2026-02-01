@@ -60,9 +60,9 @@ extern "C" {
 
 /* add user code end exported macro */
 
-#define INTERNAL_FLASH_LUN               0
+#define INTERNAL_FLASH_LUN               2
 #define SPI_FLASH_LUN                    1
-#define SD_LUN                           2
+#define SD_LUN                           0
 
 uint8_t *get_inquiry(uint8_t lun);
 usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32_t len);
