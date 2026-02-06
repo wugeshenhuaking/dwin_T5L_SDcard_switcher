@@ -52,6 +52,9 @@
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
 extern volatile uint32_t g_debug_counter; // 引用它
+
+extern uint32_t g_partition_start_lba; // 新增：引用分区起始LBA
+
 /* 定义一个 4字节对齐的中间缓冲区，大小为一个扇区 512 字节 */
 __attribute__((aligned(4))) uint8_t sd_dma_buffer[512]; 
 /* add user code end private variables */
@@ -124,22 +127,44 @@ uint8_t *get_inquiry(uint8_t lun)
 usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32_t len)
 {
   /* add user code begin msc_disk_read 0 */
-    extern volatile uint32_t g_debug_counter;
-
+  extern volatile uint32_t g_debug_counter;
   extern volatile uint8_t g_sd_is_ready; // 引用
   g_debug_counter++;
-
-//  if (g_sd_is_ready == 0)
+  
+  
+//  if(addr)
 //  {
-//      return USB_FAIL; // 卡都没了，直接拒单
+//      uint64_t temp_addr = addr;
+//      printf("Read address: %llu\n", temp_addr);
 //  }
+//  if(read_buf)
+//  {
+//      printf("Read buffer: %p\n", read_buf);
+//  }
+//  if(len)
+//  {
+//    uint32_t temp_len = len;
+//    printf("Read length: %u\n", temp_len);
+//  }
+//   if (g_sd_is_ready != 1)
+//  {
+//      return USB_FAIL;
+//  }
+  
   // 强制接管 LUN 0
   if (lun == 0 || lun == SD_LUN)
   {
+//      uint32_t sector = addr / 512; // 主机逻辑扇区号
+//      uint32_t sector_cnt = len / 512;
+//      uint32_t phy_sector = sector + g_partition_start_lba; // 转换为物理扇区号
+//      // 调用SDIO读函数，返回USB状态
+//      if (sd_read_disk(read_buf, phy_sector, sector_cnt) == SD_OK)
+//      {
+//          return USB_OK;
+//      }
       usb_sts_type res;
       res = (usb_sts_type)sd_read_disk(read_buf, addr/512, len/512);
       return res;
-
   }
   
   return USB_FAIL; // 其他情况返回 Fail
@@ -178,17 +203,25 @@ usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t l
   
   /* 在 msc_disk_read 和 msc_disk_write 的最开头加入 */
   extern volatile uint8_t g_sd_is_ready; // 引用
+  
 
-//  if (g_sd_is_ready == 0)
+//  if (g_sd_is_ready != 1)
 //  {
-//      return USB_FAIL; // 卡都没了，直接拒单
+//      return USB_FAIL;
 //  }
   if (lun == 0 || lun == SD_LUN)
   {
     usb_sts_type res;
     res = (usb_sts_type)sd_write_disk(buf, addr/512, len/512);
     return res;
-
+//      uint32_t sector = addr / 512;
+//      uint32_t sector_cnt = len / 512;
+//      uint32_t phy_sector = sector + g_partition_start_lba; // 物理扇区号偏移
+//      if (sd_write_disk(buf, phy_sector, sector_cnt) == SD_OK)
+//      {
+////          wait_sd_ready(); // 写后等待SD卡就绪，避免连续写入错误
+//          return USB_OK;
+//      }
   }
   /* add user code end msc_disk_write 0 */
 
@@ -203,7 +236,6 @@ usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t l
     default:
       break;;
   }
-
   /* add user code begin msc_disk_write 1 */
 
   /* add user code end msc_disk_write 1 */
@@ -223,16 +255,32 @@ usb_sts_type msc_disk_capacity(uint8_t lun, uint32_t *blk_nbr, uint32_t *blk_siz
   /* add user code begin msc_disk_capacity 0 */
  /* 调试计数器 */
   extern volatile uint32_t g_debug_counter;
-  extern volatile uint8_t g_sd_is_ready; // 引用
+    extern volatile uint8_t g_sd_is_ready; // 引用
+  extern  uint32_t g_partition_total_blocks;
 
-  g_sd_is_ready =1 ;
+  g_debug_counter ++ ;
 
+//  printf("read capacity SD Card Block Number: %u\n", *blk_nbr);
+//  printf("read capacity SD Card Block Size: %u\n", *blk_size);
+//  printf("SD Card Debug Counter: %d\n", g_debug_counter);
+  /* 
+   * 【强制接管】
+   * 只要电脑问的是 0 号盘，或者定义的 SD_LUN，统统当作 SD 卡处理。
+   * 这样能防止逻辑漏过。
+   */
+
+//  if (g_sd_is_ready != 1)
+//  {
+//      return USB_FAIL;
+//  }
   if (lun == 0 || lun == SD_LUN) 
   {
-      *blk_nbr =sd_card_info.card_capacity/512;
+      *blk_nbr =g_partition_total_blocks;
       *blk_size = sd_card_info.card_blk_size;
-      return USB_OK; // 此处返回OK，避免枚举失败
 
+      // printf("SD Card Capacity: %u blocks of size %u bytes\n", *blk_nbr, *blk_size);
+      // printf("SD Card Debug Counter: %u\n", g_debug_counter);
+      return USB_OK; // 此处返回OK，避免枚举失败
   }
   
   /* add user code end msc_disk_capacity 0 */

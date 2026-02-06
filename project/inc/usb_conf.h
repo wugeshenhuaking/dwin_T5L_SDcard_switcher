@@ -54,7 +54,7 @@ extern "C" {
   * @brief usb buffer extend to 768-1280 bytes
   */
 /*  #define USB_BUFFER_SIZE_EX   */ /*!< usb enable extend buffer */
-
+#define USB_BUFFER_SIZE_EX 
 
 /**
   * @brief auto malloc usb endpoint buffer
