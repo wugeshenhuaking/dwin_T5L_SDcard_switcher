@@ -44,7 +44,7 @@
 #include "at32_sdio.h"
 #include "bsp_dwt.h"
 #include "usbd_core.h"
-
+#include "device_mode_ctrl.h"
 //#include "wk_acc.h"
 //#include "ffconf.h"
 //#include "ff.h"
@@ -509,6 +509,7 @@ int main(void)
 
      /* 处理 SD 卡热插拔逻辑 */
      SD_USB_HotPlug_Handler();
+      Task_Mode_Button();
 
     /* 
      * [高级技巧] 睡眠指令 (Wait For Interrupt)
@@ -516,7 +517,6 @@ int main(void)
      * 这可以极大地降低芯片功耗和发热。
      */
 //     __WFI();  // 如果需要低功耗，取消这行的注释
-      
     /* add user code end 3 */
   }
   
