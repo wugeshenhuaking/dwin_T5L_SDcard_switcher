@@ -136,30 +136,6 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
   // 强制接管 LUN 0
   if (lun == 0 || lun == SD_LUN)
   {
-//      uint32_t i;
-//      uint32_t block_cnt = len ; 
-
-//      /* 循环处理每一个扇区 (512字节) */
-//      for (i = 0; i < block_cnt; i++)
-//      {
-//        
-//          long long byte_addr = ((long long)addr + i) * 512;
-
-//          /* 1. 先用 DMA 读到对齐的中间缓冲区 */
-//          if (sd_mult_blocks_read(sd_dma_buffer, byte_addr, 512, 1) != SD_OK)
-//          {
-//              return USB_FAIL;
-//          }
-//          
-//          wait_sd_ready();
-
-//          
-//          /* 2. 再用 CPU 把数据搬运给 USB */
-//          memcpy(read_buf + (i * 512), sd_dma_buffer, 512);
-//      }
-////            memset(read_buf, 0, len * 512); // 假装读到了数据
-
-//      return USB_OK; // 只有全部搬运完才返回 OK
       usb_sts_type res;
       res = (usb_sts_type)sd_read_disk(read_buf, addr/512, len/512);
       return res;
@@ -209,26 +185,6 @@ usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t l
 //  }
   if (lun == 0 || lun == SD_LUN)
   {
-//      uint32_t i;
-//      uint32_t block_cnt = len; /* 转换单位 */
-
-//      for (i = 0; i < block_cnt; i++)
-//      {
-//          /* 1. 先把 USB 的数据搬运到对齐缓冲区 */
-//          memcpy(sd_dma_buffer, buf + (i * 512), 512);
-//          long long byte_addr = ((long long)addr + i) * 512; // 修正溢出
-
-//          /* 2. 再用 DMA 写入 SD 卡 */
-//          if (sd_mult_blocks_write(sd_dma_buffer, byte_addr, 512, 1) != SD_OK)
-//          {
-//              return USB_FAIL;
-//          }
-////                    wait_sd_ready();
-
-////      }
-//      
-//      return USB_OK;
-      
     usb_sts_type res;
     res = (usb_sts_type)sd_write_disk(buf, addr/512, len/512);
     return res;
@@ -267,18 +223,14 @@ usb_sts_type msc_disk_capacity(uint8_t lun, uint32_t *blk_nbr, uint32_t *blk_siz
   /* add user code begin msc_disk_capacity 0 */
  /* 调试计数器 */
   extern volatile uint32_t g_debug_counter;
-    extern volatile uint8_t g_sd_is_ready; // 引用
+  extern volatile uint8_t g_sd_is_ready; // 引用
 
   g_sd_is_ready =1 ;
-  /* 
-   * 【强制接管】
-   * 只要电脑问的是 0 号盘，或者定义的 SD_LUN，统统当作 SD 卡处理。
-   * 这样能防止逻辑漏过。
-   */
+
   if (lun == 0 || lun == SD_LUN) 
   {
       *blk_nbr =sd_card_info.card_capacity/512;
-      *blk_size = 512;
+      *blk_size = sd_card_info.card_blk_size;
       return USB_OK; // 此处返回OK，避免枚举失败
 
   }
