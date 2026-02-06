@@ -146,10 +146,10 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
 //    uint32_t temp_len = len;
 //    printf("Read length: %u\n", temp_len);
 //  }
-//   if (g_sd_is_ready != 1)
-//  {
-//      return USB_FAIL;
-//  }
+   if (g_sd_is_ready != 1)
+  {
+      return USB_FAIL;
+  }
   
   // 强制接管 LUN 0
   if (lun == 0 || lun == SD_LUN)
@@ -162,12 +162,6 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
 //      {
 //          return USB_OK;
 //      }
-    
-        printf("hello world");
-    
-        printf("hello world");
-
-            printf("hello world");
       usb_sts_type res;
       res = (usb_sts_type)sd_read_disk(read_buf, addr/512, len/512);
       return res;
@@ -214,10 +208,10 @@ usb_sts_type msc_disk_write(uint8_t lun, uint64_t addr, uint8_t *buf, uint32_t l
   extern volatile uint8_t g_sd_is_ready; // 引用
   
 
-//  if (g_sd_is_ready != 1)
-//  {
-//      return USB_FAIL;
-//  }
+  if (g_sd_is_ready != 1)
+  {
+      return USB_FAIL;
+  }
   if (lun == 0 || lun == SD_LUN)
   {
     usb_sts_type res;
@@ -278,10 +272,11 @@ usb_sts_type msc_disk_capacity(uint8_t lun, uint32_t *blk_nbr, uint32_t *blk_siz
    * 这样能防止逻辑漏过。
    */
 
-//  if (g_sd_is_ready != 1)
-//  {
-//      return USB_FAIL;
-//  }
+  if (g_sd_is_ready != 1)
+  {
+      return USB_FAIL;
+  }
+  
   if (lun == 0 || lun == SD_LUN) 
   {
       *blk_nbr =g_partition_total_blocks;

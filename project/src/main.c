@@ -43,6 +43,8 @@
 #include <stdlib.h>
 #include "at32_sdio.h"
 #include "bsp_dwt.h"
+#include "usbd_core.h"
+
 //#include "wk_acc.h"
 //#include "ffconf.h"
 //#include "ff.h"
@@ -83,6 +85,8 @@
 volatile uint32_t g_sd_reinit_tick = 0;  // 重初始化定时计数器（基于系统滴答定时器ms）
 volatile uint32_t g_debug_counter = 0; // 定义一个计数器
 volatile uint8_t g_sd_is_ready = 0; 
+extern usbd_core_type usb_core_dev;
+extern uint32_t wk_timebase_get(void);
 /* 
  * 定义接收缓冲区 
  * 注意：使用 DMA 时，缓冲区必须 4 字节对齐！
@@ -343,6 +347,50 @@ static void sd_card_timer_reinit(void)
         g_sd_reinit_tick = 0; // SD卡就绪时，重置定时器
     }
 }
+
+
+void SD_USB_HotPlug_Handler(void)
+{
+    static uint32_t last_check_tick = 0;
+    uint32_t response = 0;
+    
+    // 每 500ms 检查一次卡状态，避免过度占用总线
+    if (wk_timebase_get() - last_check_tick < 500) return;
+    last_check_tick = wk_timebase_get();
+
+    if (g_sd_is_ready) 
+    {
+        /* --- 场景 A：卡目前是在线状态，检查它是否被拔掉 --- */
+        // sd_status_send 内部会发送 CMD13。如果卡拔掉了，会返回 SD_CMD_RSP_TIMEOUT
+        if (sd_status_send(&response) != SD_OK) 
+        {
+            g_sd_is_ready = 0;
+            printf("检测到卡已拔出！正在断开USB...\r\n");
+            
+            /* 关键：断开 USB 软连接，让电脑上的盘符消失 */
+            usbd_disconnect(&usb_core_dev); 
+        }
+    }
+    else 
+    {
+        /* --- 场景 B：卡目前不在线，尝试重新初始化 --- */
+        if (sd_init() == SD_OK) 
+        {
+            printf("检测到新卡插入！正在初始化文件系统信息...\r\n");
+            
+            // 重新获取卡信息和分区表信息
+            sd_card_info_get(&sd_card_info);
+            if (sdcard_parse_mbr_partition() == 0) 
+            {
+                g_sd_is_ready = 1;
+                printf("卡就绪，正在重新连接USB...\r\n");
+                
+                /* 关键：重新使能 USB，让电脑重新弹出 U 盘 */
+                usbd_connect(&usb_core_dev); 
+            }
+        }
+    }
+}
 /* add user code end 0 */
 
 /**
@@ -389,11 +437,12 @@ int main(void)
   wk_usb_app_init();
 
   /* add user code begin 2 */
-  
   dwt_delay_init();
-
+  /* 建议组合使用 */
+//  debug_periph_mode_set(DEBUG_SLEEP, TRUE);     // 防止睡眠断开调试
+//  debug_periph_mode_set(DEBUG_WDT_PAUSE, TRUE); // 当调试器断点停住 CPU 时，自动暂停看门狗计时，防止断点导致意外复位
   /* 尝试初始化 SD 卡 */
-    printf("开始初始化SD卡...\r\n");
+  printf("开始初始化SD卡...\r\n");
 
   sd_error_status_type sd_status = sd_init();
 
@@ -403,17 +452,12 @@ int main(void)
       // 可以在这里亮一个红灯，方便你排查硬件问题
     
     g_sd_is_ready =0;
-      while(1)
-      {
-        printf("sd card init failure!!\n");
-        printf("sd card sd_status = %d\n",sd_status);
-        wk_delay_ms(1000);
-      }
-    
-//    printf("SD卡首次初始化成功，USB开始初始化...\r\n");
-    // 3. SD卡就绪后，再初始化USB（核心时序调整）
-//    wk_usbfs_init();   // USB底层初始化
-//    wk_usb_app_init(); // USB MSC应用初始化
+    while(1)
+    {
+      printf("sd card init failure!!\n");
+      printf("sd card sd_status = %d\n",sd_status);
+      wk_delay_ms(1000);
+    }
   }
   else 
   {
@@ -431,12 +475,12 @@ int main(void)
     } else {
         printf("分区表解析失败，使用默认512MB容量\r\n");
     }
-    
-//    printf("SD卡首次初始化失败，将进入定时重初始化模式...\r\n");
-//    // 即使SD卡未插，也初始化USB，后续插卡后重初始化成功可正常识别
-//    wk_usbfs_init();
-//    wk_usb_app_init();
-
+  }
+  
+  
+   if(!g_sd_is_ready) 
+  {
+      usbd_disconnect(&usb_core_dev); // 如果开机没卡，先关掉 USB 连接
   }
   
   
@@ -450,9 +494,9 @@ int main(void)
 //  free(fs);
 //  free(file);
 //  Read_DiskSize(&SD_size,0);
-//      uint32_t poll_timer = 0;
-    uint32_t response = 0;
-
+//    uint32_t poll_timer = 0;
+//    uint32_t response = 0;
+/* 允许在睡眠模式下依然保持调试连接 */
   /* add user code end 2 */
 
   while(1)
@@ -460,19 +504,18 @@ int main(void)
      wk_usb_app_task();
 
     /* add user code begin 3 */
-    printf("hello world \n");
+//    printf("hello world \n");
+//    wk_delay_ms(1000);
 
-    // printf("SD Card State: %d\n", sd_status_send(&response));
-//        sd_card_state_detect();
-//        sd_card_timer_reinit();
+     /* 处理 SD 卡热插拔逻辑 */
+     SD_USB_HotPlug_Handler();
 
-    wk_delay_ms(1000);
     /* 
      * [高级技巧] 睡眠指令 (Wait For Interrupt)
      * 如果所有任务都处理完了，让 CPU 睡一会儿，等 SysTick 中断来了再醒。
      * 这可以极大地降低芯片功耗和发热。
      */
-     // __WFI();  // 如果需要低功耗，取消这行的注释
+//     __WFI();  // 如果需要低功耗，取消这行的注释
       
     /* add user code end 3 */
   }
