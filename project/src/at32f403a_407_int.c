@@ -50,6 +50,7 @@
 
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
+  extern volatile uint32_t g_sd_reinit_tick;
 
 /* add user code end private variables */
 
@@ -219,7 +220,7 @@ void SysTick_Handler(void)
   wk_timebase_handler();
 
   /* add user code begin SysTick_IRQ 1 */
-
+//  g_sd_reinit_tick++;
   /* add user code end SysTick_IRQ 1 */
 }
 

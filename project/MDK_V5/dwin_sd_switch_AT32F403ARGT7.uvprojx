@@ -544,11 +544,6 @@
               <FilePath>..\..\libraries\drivers\src\at32f403a_407_can.c</FilePath>
             </File>
             <File>
-              <FileName>at32f403a_407_dac.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\libraries\drivers\src\at32f403a_407_dac.c</FilePath>
-            </File>
-            <File>
               <FileName>at32f403a_407_xmc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\libraries\drivers\src\at32f403a_407_xmc.c</FilePath>
@@ -653,6 +648,11 @@
         <Group>
           <GroupName>middlewares/usbd_driver</GroupName>
           <Files>
+            <File>
+              <FileName>at32f403a_407_dac.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\libraries\drivers\src\at32f403a_407_dac.c</FilePath>
+            </File>
             <File>
               <FileName>usbd_core.c</FileName>
               <FileType>1</FileType>

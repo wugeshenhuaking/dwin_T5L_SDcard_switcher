@@ -68,6 +68,9 @@
 #define TEST_BLOCK_SIZE   512
 #define TEST_BUF_SIZE     (TEST_BLOCK_COUNT * TEST_BLOCK_SIZE)
 
+
+#define SD_REINIT_INTERVAL_MS  500  // SD卡重初始化间隔，500ms一次（可根据需求调整）
+#define SD_INIT_TIMEOUT_MS     2000 // SD卡单次初始化超时时间
 /* add user code end private define */
 
 /* private macro -------------------------------------------------------------*/
@@ -77,6 +80,7 @@
 
 /* private variables ---------------------------------------------------------*/
 /* add user code begin private variables */
+volatile uint32_t g_sd_reinit_tick = 0;  // 重初始化定时计数器（基于系统滴答定时器ms）
 volatile uint32_t g_debug_counter = 0; // 定义一个计数器
 volatile uint8_t g_sd_is_ready = 0; 
 /* 
@@ -210,6 +214,135 @@ void SD_Safe_Read_Test(void)
                read_buffer[0], read_buffer[1], read_buffer[2], read_buffer[3]);
     }
 }
+
+// 全局变量：存储SD卡第一个分区的总块数（512字节/块）
+uint32_t g_partition_start_lba = 0; // 新增：分区起始LBA（关键，避免破坏MBR）
+uint32_t g_partition_total_blocks = 0;
+// 512MB分区的默认块数（解析失败时降级使用）
+#define DEFAULT_512MB_BLOCKS  1048576
+
+
+// MBR分区表项结构（16字节，偏移0x1BE开始共4个）
+typedef struct {
+    uint8_t  boot_flag;        // 0x00: 引导标志（0x80为活动分区）
+    uint8_t  start_chs[3];     // 0x01: 分区起始CHS地址
+    uint8_t  part_type;        // 0x04: 分区类型（如0x0B=FAT32）
+    uint8_t  end_chs[3];       // 0x05: 分区结束CHS地址
+    uint32_t start_lba;        // 0x08: 分区起始LBA块号（核心：分区起始地址）
+    uint32_t total_sectors;    // 0x0C: 分区总扇区数（即总块数，核心要获取的值）
+} __attribute__((packed)) MBR_Partition_t;  // 紧凑结构体，避免字节对齐问题
+
+/**
+ * @brief  解析SD卡MBR分区表，获取第一个主分区的总块数
+ * @retval 0: 解析成功，-1: 解析失败（SD卡未初始化/读块失败/无有效分区）
+ */
+int32_t sdcard_parse_mbr_partition(void)
+{
+    uint8_t mbr_buf[512] = {0};
+    MBR_Partition_t *p_part = NULL;
+
+    // 修正：判断返回值为SD_OK（AT32驱动标准返回值）
+    if (sd_block_read(mbr_buf, 0, 512) != SD_OK) {
+        printf("MBR读取失败：sd_block_read错误\r\n");
+        return -1;
+    }
+    if (mbr_buf[510] != 0x55 || mbr_buf[511] != 0xAA) {
+        printf("MBR无效：无55AA签名\r\n");
+        return -1;
+    }
+    p_part = (MBR_Partition_t *)(mbr_buf + 0x1BE);
+    if (p_part->part_type == 0) {
+        printf("无有效主分区：分区类型为0\r\n");
+        return -1;
+    }
+    // 保存分区总块数 + 起始LBA（新增，后续读写偏移用）
+    g_partition_total_blocks = p_part->total_sectors;
+    g_partition_start_lba = p_part->start_lba;
+    printf("分区解析成功：起始LBA=%d，总块数=%d\r\n", g_partition_start_lba, g_partition_total_blocks);
+    return 0;
+}
+
+
+
+/**
+ * @brief  SD卡完整初始化（幂等设计，重复调用无副作用）
+ * @retval 0-成功，1-失败
+ */
+static uint8_t sd_card_complete_init(void)
+{
+    uint8_t ret = 1;
+    // 1. 底层SDIO初始化（调用AT32 SDIO驱动的初始化函数）
+    if (sd_init() == SD_OK)
+    {
+        // 2. 获取SD卡信息（块大小、总物理块数等）
+        sd_card_info_get(&sd_card_info);
+        // 3. 解析MBR分区表，获取第一个分区的总块数（复用之前的分区解析逻辑）
+        if (sdcard_parse_mbr_partition() == 0)
+        {
+            // 初始化成功：更新就绪标记+打印信息
+            g_sd_is_ready = 1;
+            ret = 0;
+            printf("SD卡初始化成功，分区块数：%d，块大小：%d\r\n",
+                   g_partition_total_blocks, sd_card_info.card_blk_size);
+        }
+        else
+        {
+            printf("SD卡初始化成功，但分区表解析失败，使用默认512MB容量\r\n");
+            g_partition_total_blocks = 1048576; // 默认512MB块数
+            g_sd_is_ready = 1;
+            ret = 0;
+        }
+    }
+    else
+    {
+        // 初始化失败：重置就绪标记
+        g_sd_is_ready = 0;
+        printf("SD卡初始化失败\r\n");
+    }
+    return ret;
+}
+
+/**
+ * @brief  SD卡状态实时检测（轮询调用，检测拔卡/异常）
+ */
+static void sd_card_state_detect(void)
+{
+    sd_card_state_type sd_state;
+    // 仅当SD卡就绪时，才检测状态（未就绪时无需检测，避免无效操作）
+    if (g_sd_is_ready == 1)
+    {
+        sd_state = sd_state_get();
+        // 检测到SD卡异常/断开，标记为未就绪
+        if (sd_state == SD_CARD_ERROR || sd_state == SD_CARD_DISCONNECTED)
+        {
+            g_sd_is_ready = 0;
+            printf("SD卡已拔出/异常，标记为未就绪\r\n");
+            // 可选：重置SDIO底层状态（部分驱动拔卡后需要重置）
+//            sd_io_reset();
+        }
+    }
+}
+
+/**
+ * @brief  SD卡定时重初始化（在主循环调用，基于ms定时器）
+ */
+static void sd_card_timer_reinit(void)
+{
+    // 仅当SD卡未就绪时，才执行定时重初始化
+    if (g_sd_is_ready == 0)
+    {
+        // 达到重初始化间隔（500ms）
+        if (g_sd_reinit_tick >= SD_REINIT_INTERVAL_MS)
+        {
+            g_sd_reinit_tick = 0; // 重置定时器
+            sd_card_complete_init(); // 尝试重初始化
+        }
+    }
+    else
+    {
+        g_sd_reinit_tick = 0; // SD卡就绪时，重置定时器
+    }
+}
 /* add user code end 0 */
 
 /**
@@ -260,27 +393,50 @@ int main(void)
   dwt_delay_init();
 
   /* 尝试初始化 SD 卡 */
+    printf("开始初始化SD卡...\r\n");
+
   sd_error_status_type sd_status = sd_init();
 
   if(sd_status != SD_OK)
   {
       // SD卡初始化失败！
       // 可以在这里亮一个红灯，方便你排查硬件问题
+    
+    g_sd_is_ready =0;
       while(1)
       {
         printf("sd card init failure!!\n");
         printf("sd card sd_status = %d\n",sd_status);
         wk_delay_ms(1000);
       }
+    
+//    printf("SD卡首次初始化成功，USB开始初始化...\r\n");
+    // 3. SD卡就绪后，再初始化USB（核心时序调整）
+//    wk_usbfs_init();   // USB底层初始化
+//    wk_usb_app_init(); // USB MSC应用初始化
   }
   else 
   {
     printf("sd card init success!!\n");
     printf("sd card sd_status = %d\n",sd_status);
     printf("Start Test...\r\n");
-    g_sd_is_ready = 1;
    /* 调用我给你的只读测试函数 */
 //    SD_Safe_Read_Test();
+    g_sd_is_ready = 1;
+    // 3. 解析SD卡MBR分区表（核心步骤：提前获取分区容量，存入全局变量）
+    if (sdcard_parse_mbr_partition() == 0) {
+        printf("分区表解析成功，分区总块数：%d（%d MB）\r\n",
+               g_partition_total_blocks,
+               (g_partition_total_blocks * 512) / 1024 / 1024);
+    } else {
+        printf("分区表解析失败，使用默认512MB容量\r\n");
+    }
+    
+//    printf("SD卡首次初始化失败，将进入定时重初始化模式...\r\n");
+//    // 即使SD卡未插，也初始化USB，后续插卡后重初始化成功可正常识别
+//    wk_usbfs_init();
+//    wk_usb_app_init();
+
   }
   
   
@@ -294,8 +450,8 @@ int main(void)
 //  free(fs);
 //  free(file);
 //  Read_DiskSize(&SD_size,0);
-  
-      uint32_t poll_timer = 0;
+//      uint32_t poll_timer = 0;
+    uint32_t response = 0;
 
   /* add user code end 2 */
 
@@ -304,7 +460,12 @@ int main(void)
      wk_usb_app_task();
 
     /* add user code begin 3 */
-//    printf("hello world \n");
+    printf("hello world \n");
+
+    // printf("SD Card State: %d\n", sd_status_send(&response));
+//        sd_card_state_detect();
+//        sd_card_timer_reinit();
+
     wk_delay_ms(1000);
     /* 
      * [高级技巧] 睡眠指令 (Wait For Interrupt)
@@ -315,8 +476,10 @@ int main(void)
       
     /* add user code end 3 */
   }
-}
-
+  
   /* add user code begin 4 */
 
   /* add user code end 4 */
+}
+
+
