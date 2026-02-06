@@ -162,9 +162,18 @@ usb_sts_type msc_disk_read(uint8_t lun, uint64_t addr, uint8_t *read_buf, uint32
 //      {
 //          return USB_OK;
 //      }
+    
+        printf("hello world");
+    
+        printf("hello world");
+
+            printf("hello world");
       usb_sts_type res;
       res = (usb_sts_type)sd_read_disk(read_buf, addr/512, len/512);
       return res;
+    
+
+
   }
   
   return USB_FAIL; // 其他情况返回 Fail
