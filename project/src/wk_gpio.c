@@ -60,8 +60,9 @@ void wk_gpio_config(void)
   gpio_init(TF_CARD_SWITCH_PIN_GPIO_PORT, &gpio_init_struct);
 
   /* add user code begin gpio_config 2 */
-  gpio_bits_reset(TF_CARD_SWITCH_PIN_GPIO_PORT, TF_CARD_SWITCH_PIN_PIN);
+//  gpio_bits_reset(TF_CARD_SWITCH_PIN_GPIO_PORT, TF_CARD_SWITCH_PIN_PIN);
 
+  gpio_bits_set(TF_CARD_SWITCH_PIN_GPIO_PORT, TF_CARD_SWITCH_PIN_PIN);
 
   gpio_init_struct.gpio_mode = GPIO_MODE_INPUT;
   gpio_init_struct.gpio_pins = GPIO_PINS_7;

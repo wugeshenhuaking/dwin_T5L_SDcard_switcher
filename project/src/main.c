@@ -437,51 +437,51 @@ int main(void)
   wk_usb_app_init();
 
   /* add user code begin 2 */
-  dwt_delay_init();
+////  dwt_delay_init();
   /* 建议组合使用 */
 //  debug_periph_mode_set(DEBUG_SLEEP, TRUE);     // 防止睡眠断开调试
 //  debug_periph_mode_set(DEBUG_WDT_PAUSE, TRUE); // 当调试器断点停住 CPU 时，自动暂停看门狗计时，防止断点导致意外复位
   /* 尝试初始化 SD 卡 */
-  printf("开始初始化SD卡...\r\n");
+//  printf("开始初始化SD卡...\r\n");
 
-  sd_error_status_type sd_status = sd_init();
+//  sd_error_status_type sd_status = sd_init();
 
-  if(sd_status != SD_OK)
-  {
-      // SD卡初始化失败！
-      // 可以在这里亮一个红灯，方便你排查硬件问题
-    
-    g_sd_is_ready =0;
-    while(1)
-    {
-      printf("sd card init failure!!\n");
-      printf("sd card sd_status = %d\n",sd_status);
-      wk_delay_ms(1000);
-    }
-  }
-  else 
-  {
-    printf("sd card init success!!\n");
-    printf("sd card sd_status = %d\n",sd_status);
-    printf("Start Test...\r\n");
-   /* 调用我给你的只读测试函数 */
-//    SD_Safe_Read_Test();
-    g_sd_is_ready = 1;
-    // 3. 解析SD卡MBR分区表（核心步骤：提前获取分区容量，存入全局变量）
-    if (sdcard_parse_mbr_partition() == 0) {
-        printf("分区表解析成功，分区总块数：%d（%d MB）\r\n",
-               g_partition_total_blocks,
-               (g_partition_total_blocks * 512) / 1024 / 1024);
-    } else {
-        printf("分区表解析失败，使用默认512MB容量\r\n");
-    }
-  }
-  
-  
-   if(!g_sd_is_ready) 
-  {
-      usbd_disconnect(&usb_core_dev); // 如果开机没卡，先关掉 USB 连接
-  }
+//  if(sd_status != SD_OK)
+//  {
+//      // SD卡初始化失败！
+//      // 可以在这里亮一个红灯，方便你排查硬件问题
+//    
+//    g_sd_is_ready =0;
+//    while(1)
+//    {
+//      printf("sd card init failure!!\n");
+//      printf("sd card sd_status = %d\n",sd_status);
+//      wk_delay_ms(1000);
+//    }
+//  }
+//  else 
+//  {
+//    printf("sd card init success!!\n");
+//    printf("sd card sd_status = %d\n",sd_status);
+//    printf("Start Test...\r\n");
+//   /* 调用我给你的只读测试函数 */
+////    SD_Safe_Read_Test();
+//    g_sd_is_ready = 1;
+//    // 3. 解析SD卡MBR分区表（核心步骤：提前获取分区容量，存入全局变量）
+//    if (sdcard_parse_mbr_partition() == 0) {
+//        printf("分区表解析成功，分区总块数：%d（%d MB）\r\n",
+//               g_partition_total_blocks,
+//               (g_partition_total_blocks * 512) / 1024 / 1024);
+//    } else {
+//        printf("分区表解析失败，使用默认512MB容量\r\n");
+//    }
+//  }
+//  
+//  
+//   if(!g_sd_is_ready) 
+//  {
+//      usbd_disconnect(&usb_core_dev); // 如果开机没卡，先关掉 USB 连接
+//  }
   
   
 //  fs = (FATFS*)malloc(sizeof(FATFS));
@@ -508,8 +508,8 @@ int main(void)
 //    wk_delay_ms(1000);
 
      /* 处理 SD 卡热插拔逻辑 */
-     SD_USB_HotPlug_Handler();
-      Task_Mode_Button();
+//     SD_USB_HotPlug_Handler();
+//      Task_Mode_Button();
 
     /* 
      * [高级技巧] 睡眠指令 (Wait For Interrupt)
