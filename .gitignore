@@ -13,8 +13,8 @@
 /time_ctrl.maprj
 # 忽略所有在 build/ 目录下的文件
 # build/
-MDK-ARM/Listings
-MDK-ARM/Objects
+#MDK-ARM/Listings
+#MDK-ARM/Objects
 # 忽略所有在 doc/notes.txt，但不忽略 doc/server/arch.txt
 # doc/*.txt
 # !doc/server/arch.txt
